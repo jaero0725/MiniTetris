@@ -250,15 +250,15 @@
       function setLevel(){
         level = document.getElementById("level");
          //시간에 따라 레벨 변하게 하기, scoreTmp(점수)를 기준으로 해서 레벨 변경. 
-        if(scoreTmp > 4 && scoreFlag == 0){levelTimeSet();scoreFlag++;alert((scoreFlag+1)+"단계!");}     //LEVEL 2
-        else if(scoreTmp >9 && scoreFlag == 1) {levelTimeSet();scoreFlag++;alert((scoreFlag+1)+"단계!");}//LEVEL 3
-        else if(scoreTmp >14 && scoreFlag == 2){levelTimeSet();scoreFlag++;alert((scoreFlag+1)+"단계!");}//LEVEL 4
-        else if(scoreTmp >19 && scoreFlag == 3){levelTimeSet();scoreFlag++;alert((scoreFlag+1)+"단계!");}//LEVEL 5
-        else if(scoreTmp >24 && scoreFlag == 4){levelTimeSet();scoreFlag++;alert((scoreFlag+1)+"단계!");}//LEVEL 6
-        else if(scoreTmp >29 && scoreFlag == 5){levelTimeSet();scoreFlag++;alert((scoreFlag+1)+"단계!");}//LEVEL 7
-        else if(scoreTmp >34 && scoreFlag == 6){levelTimeSet();scoreFlag++;alert((scoreFlag+1)+"단계!");}//LEVEL 8
-        else if(scoreTmp >39 && scoreFlag == 7){levelTimeSet();scoreFlag++;alert((scoreFlag+1)+"단계!");}//LEVEL 9
-        else if(scoreTmp >44 && scoreFlag == 8){levelTimeSet();scoreFlag++;alert((scoreFlag+1)+"단계!");}//LEVEL 10
+        if(scoreTmp > 4 && scoreFlag == 0){levelTimeSet();scoreFlag++;}     	//LEVEL 2
+        else if(scoreTmp >9 && scoreFlag == 1) {levelTimeSet();scoreFlag++;}	//LEVEL 3
+        else if(scoreTmp >14 && scoreFlag == 2){levelTimeSet();scoreFlag++;}	//LEVEL 4
+        else if(scoreTmp >19 && scoreFlag == 3){levelTimeSet();scoreFlag++;}	//LEVEL 5
+        else if(scoreTmp >24 && scoreFlag == 4){levelTimeSet();scoreFlag++;}	//LEVEL 6
+        else if(scoreTmp >29 && scoreFlag == 5){levelTimeSet();scoreFlag++;}	//LEVEL 7
+        else if(scoreTmp >34 && scoreFlag == 6){levelTimeSet();scoreFlag++;}	//LEVEL 8
+        else if(scoreTmp >39 && scoreFlag == 7){levelTimeSet();scoreFlag++;}	//LEVEL 9
+        else if(scoreTmp >44 && scoreFlag == 8){levelTimeSet();scoreFlag++;}	//LEVEL 10
       }
       function levelTimeSet(){
         clearInterval("timerID");
