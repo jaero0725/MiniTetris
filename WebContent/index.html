@@ -1,0 +1,48 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>테트리스 웹페이지</title>
+<style>
+* {padding:0;margin:0;}
+body {
+  align-content:center;
+  background:#fff;
+}
+#contents{
+	display : inline-block;
+}
+header{width:100%;background:black;position:relative;textStyle:white; text-decoration:none;text-align:center;}
+#title{margin:30px;font-size:50px;color:white; text-decoration:none;}
+#title:hover{color:gray; text-decoration:none;}
+header li a{
+	text-decoration:none;
+	font-size:30px;
+	color:white;
+}
+header li a:hover{
+	text-decoration:none;
+	font-size:30px;
+	color:gray;
+}
+section{
+  width:100%;
+  height:800px;
+  overflow:hidden;
+}
+</style>
+</head>
+<body style="margin:0px;padding:0px;">
+<header> 
+	<h3><a href="tetris.html" id="title" target="section">TETRIS GAME</a><h3><br><hr>
+	<div id="contents">
+		<ul>
+		  <li><a href="introduce.html" target="section">ABOUT</a></li>
+          <li><a href="tetris.html" target="section">REGAME</a></li>	
+		</ul>
+	</div>
+<section>
+        <iframe src="introduce.html" frameborder="0" height="100%" width="100%" name="section" name="section"></iframe>
+</section>
+</body>
+</html>

@@ -1,0 +1,531 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Tetris Base</title>
+    <style>
+      table {
+        postion:absoulte;
+        border: 1px solid blue;
+        border-collapse: collapse;
+      }
+      td {
+        border: 1px solid lightgray;
+        width: 50px;
+        height: 50px;
+        padding: 0px;
+      }
+      #contents{
+        position: absolute;
+        top: 40%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      #score{
+        color:red;
+        font-size:40px;
+      }
+      #time{
+        color:red;
+        font-style:bold;
+        font-size:40px; 
+      }
+    </style>
+    <script>
+
+      var colorTable = ["blue", "green", "yellow", "magenta"];
+      var tds = null;
+      var blockLoc = 4; //처음에는 가운데서 시작하기.
+      var blockColor = null;
+      var timerID = null;
+      var blockArray = null;
+      var checkBlockCount = 0;
+      var timeLevel = 300; 
+      var timeFlag = 0;
+      var blockCollection = new BlockCollection();
+      var scoreTmp = 0; //점수용 tmp
+      window.focus();
+      window.ondblclick = stopAndGo;
+
+      function init() {
+        blockArray = new Array(10);
+        for (let i = 0; i < 10; i++) {
+          blockArray[i] = new Array(10);
+          for (let j = 0; j < 10; j++) blockArray[i][j] = null;
+        }
+        var str = "";
+        for (let i = 0; i < 10; i++) {
+          for (let j = 0; j < 10; j++) str += blockArray[i][j] + " ";
+          str += "\n";
+        }
+        blockColor = chooseColor();
+      }
+
+      function chooseColor() {
+        return colorTable[Math.floor(Math.random() * colorTable.length)];
+      }
+      window.onload = function() {
+        init();
+        countID = setInterval("count()",1000);          //  count() set timer
+        tds = document.getElementsByTagName("td");
+        tds[blockLoc].style.backgroundColor = blockColor;
+        
+        timerID = setInterval("moveDown()", timeLevel); //  moveDown() set timer
+      };
+
+      window.onblur = function() {
+        window.focus();
+      };
+
+     function stopAndGo() {
+        //"블럭" 떨어지는 타이머 멈추기 
+        if (timerID == null) 
+          timerID = setInterval("moveDown()",timeLevel);
+        else {
+          clearInterval(timerID);
+          timerID = null;
+        }
+        //"초"" 가는 타이머 멈추기
+        if(countID ==null)
+          countID = setInterval("count()",1000);
+        else{
+          clearInterval(countID);
+          countID =null;
+        }
+      }
+
+      window.onkeydown = function(e) {
+        if (e.key == "ArrowRight" || e.key == "Right") moveRight();
+        else if (e.key == "ArrowLeft" || e.key == "Left") moveLeft();
+        else if (e.key == "s") stopAndGo();
+        else if (e.keyCode == 40)
+          //빠르게 가기
+          moveDown();
+        else if (e.keyCode == 32)
+          //spacebar
+          moveSpace();
+      };
+
+      /*----------------------------------------------space 바 만들기 ----------------------------------------*/
+      function buttomCheck() {
+        //바닥에 블록이 있을 때  체크 해주는 함수
+        let i = Math.floor(blockLoc / 10);
+        let j = blockLoc % 10;
+        for (let n = i; n < 10; n++) {
+          if (blockArray[i][j] == null) i++;
+          else return n - 1; //가야하는 위치의 i값을  return
+        }
+      }
+      function moveSpace() {
+        let i = Math.floor(blockLoc / 10);
+        let j = blockLoc % 10;
+        let check = buttomCheck();
+        if (check <= 10) {
+          //바닥이아니고 check가 나올때.
+          tds[blockLoc].style.backgroundColor = "black"; //있던자리 black
+          blockArray[check][j] = new Block(check, j, blockColor);
+          blockArray[check][j].draw();
+          blockCollection.add(new Block(check, j, blockColor));
+        } else {
+          //바닥일때
+          tds[blockLoc].style.backgroundColor = "black"; //있던자리 black
+          blockArray[9][j] = new Block(9, j, blockColor);
+          blockArray[9][j].draw();
+          blockCollection.add(new Block(9, j, blockColor));
+        }
+        oneCycle();
+        startNew();
+      }
+      /*--------------------------------------------------------------------------------------------------------*/
+      /*----------------------------------------------keyboard key만들기 ----------------------------------------*/
+
+      function moveRight() {
+        if (blockLoc % 10 != 9) {
+          tds[blockLoc].style.backgroundColor = "black";
+          blockLoc++;
+          tds[blockLoc].style.backgroundColor = blockColor;
+        }
+      }
+      function moveLeft() {
+        if (blockLoc % 10 != 0) {
+          tds[blockLoc].style.backgroundColor = "black";
+          blockLoc--;
+          tds[blockLoc].style.backgroundColor = blockColor;
+        }
+      }
+      function moveDown() {
+        if (canDown()) {
+          tds[blockLoc].style.backgroundColor = "black";
+          blockLoc += 10;
+          tds[blockLoc].style.backgroundColor = blockColor;
+        } 
+        else {
+            if (blockLoc==0) {
+              tds[blockLoc].style.backgroundColor = blockColor;
+              overGame();
+              return;
+            }
+            else if(blockLoc<10){
+              tds[blockLoc].style.backgroundColor = blockColor;
+              overGame();
+              return;
+            }
+            else {
+              let i = Math.floor(blockLoc / 10);
+              let j = blockLoc % 10;
+              blockArray[i][j] = new Block(i, j, blockColor);
+              blockArray[i][j].draw();
+              blockCollection.add(new Block(i, j, blockColor));
+
+              oneCycle();
+              startNew();
+            }
+        }
+      }
+      /*--------------------------------------------------------------------------------------------*/
+
+      function startNew() {// new start
+        blockLoc = Math.floor(Math.random()*10); //랜덤하게 나오는 블록!
+        blockColor = chooseColor();
+        tds[blockLoc].style.backgroundColor = blockColor;
+        countScore();
+        setLevel();
+       }
+
+      function canDown() {
+        if (blockLoc >= 90) return false;
+        let downLoc = blockLoc + 10;
+        let i = Math.floor(downLoc / 10);
+        let j = downLoc % 10;
+        if (blockArray[i][j] == null) return true;
+        else return false;
+      }
+      function Block(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.draw = function() {
+          tds[x * 10 + y].style.backgroundColor = this.color;
+        };
+      }
+      /*---------------------------------------------CONFIRM 구현----------------------------------------*/
+
+      function overGame() {
+        alert(score.value);
+        if (timerID != null){
+          var isRegame = confirm("REGAME?");
+          if(isRegame){
+            blockCollection.clear();
+              for(let i=0;i<100;i++){
+                tds[i].style.backgroundColor = "black";  
+              }
+              for(let i=0;i<10;i++){
+                for(let j=0;j<10;j++){
+                    blockArray[i][j] = null;
+                }
+              }
+            clearInterval(timerID);
+            clearInterval(countID);
+            p =0;
+            timer =0;
+            scoreTmp =0;
+            scoreFlag =0;
+            countTime.innerHTML =0;
+            level.value = "LEVEL 1";
+            score.value ="SCORE : 0";
+            timeLevel = 300;
+            timerID = setInterval("moveDown()",timeLevel);
+            countID = setInterval("count()",1000);
+          }
+          else if(!isRegame){
+            alert("끝!");
+            return;
+          } 
+        }
+      }
+
+      /*----------------------------------------------LEVEL 구현----------------------------------------*/
+      var levelCount = 1;
+      var scoreFlag = 0;
+      function setLevel(){
+        level = document.getElementById("level");
+         //시간에 따라 레벨 변하게 하기, scoreTmp(점수)를 기준으로 해서 레벨 변경. 
+        if(scoreTmp > 4 && scoreFlag == 0){levelTimeSet();scoreFlag++;alert((scoreFlag+1)+"단계!");}     //LEVEL 2
+        else if(scoreTmp >9 && scoreFlag == 1) {levelTimeSet();scoreFlag++;alert((scoreFlag+1)+"단계!");}//LEVEL 3
+        else if(scoreTmp >14 && scoreFlag == 2){levelTimeSet();scoreFlag++;alert((scoreFlag+1)+"단계!");}//LEVEL 4
+        else if(scoreTmp >19 && scoreFlag == 3){levelTimeSet();scoreFlag++;alert((scoreFlag+1)+"단계!");}//LEVEL 5
+        else if(scoreTmp >24 && scoreFlag == 4){levelTimeSet();scoreFlag++;alert((scoreFlag+1)+"단계!");}//LEVEL 6
+        else if(scoreTmp >29 && scoreFlag == 5){levelTimeSet();scoreFlag++;alert((scoreFlag+1)+"단계!");}//LEVEL 7
+        else if(scoreTmp >34 && scoreFlag == 6){levelTimeSet();scoreFlag++;alert((scoreFlag+1)+"단계!");}//LEVEL 8
+        else if(scoreTmp >39 && scoreFlag == 7){levelTimeSet();scoreFlag++;alert((scoreFlag+1)+"단계!");}//LEVEL 9
+        else if(scoreTmp >44 && scoreFlag == 8){levelTimeSet();scoreFlag++;alert((scoreFlag+1)+"단계!");}//LEVEL 10
+      }
+      function levelTimeSet(){
+        clearInterval("timerID");
+        level = document.getElementById("level");
+        //시간에 따라 레벨 변하게 하기.
+        timeLevel += 300;
+        levelCount++;
+        timerID = setInterval("moveDown()",timeLevel);
+        level.value="LEVEL "+levelCount;
+      }
+
+      /*-------------------------------------------점수 만들기 구현------------------------------------*/
+      var p =0;
+      function countScore(){
+        score = document.getElementById("score");
+        score.value ="SCORE : "+(scoreTmp*100);
+      }
+
+      /*------------------------------------------타이머 만들기 구현----------------------------------------*/
+      var timer = 0;
+      function count(){
+        countTime = document.getElementById("time");
+        timer++;
+        countTime.innerHTML = timer;
+      }
+
+      /*--------------------------------------블록 지우는 알고리즘 구현----------------------------------------*/
+      function BlockCollection() {
+        // 편의성 및 성능을 위해 색깔별 리스트 분류
+        this.blue_list = [];
+        this.green_list = [];
+        this.yellow_list = [];
+        this.magenta_list = [];
+
+        this.add = function(block) {
+          let tmp = block.x * 10 + block.y;
+          if (block.color == "blue") {
+            this.blue_list.push(tmp);
+          } 
+          else if (block.color == "green") {
+            this.green_list.push(tmp);
+          } 
+          else if (block.color == "yellow") {
+            this.yellow_list.push(tmp);
+          } 
+          else if (block.color == "magenta") {
+            this.magenta_list.push(tmp);
+          }
+        };//색별로 list에 넣었습니다. 
+
+        this.getAllBlocksToRemove = function() {
+          let tmpList = [];
+          let blue = this.getListToRemoveByColor("blue");
+          let green = this.getListToRemoveByColor("green");
+          let yellow = this.getListToRemoveByColor("yellow");
+          let magenta = this.getListToRemoveByColor("magenta");
+          if (blue != null) {
+            tmpList = tmpList.concat(blue);
+          }
+          if (green != null) {
+            tmpList = tmpList.concat(green);
+          }
+          if (yellow != null) {
+            tmpList = tmpList.concat(yellow);
+          }
+          if (magenta != null) {
+            tmpList = tmpList.concat(magenta);
+          }
+          return tmpList;
+        };
+
+        this.getListToRemoveByColor = function(color) {
+          let listToRemove = null;
+          if (color == "blue") {
+            listToRemove = this.getListToRemove(this.blue_list);
+            if (listToRemove.length > 0) {
+              for (let i = 0; i < listToRemove[0].length; i++) {
+                // 제거한 엘리먼트는 리스트에서도 제거
+                let index = this.blue_list.indexOf(listToRemove[0][i]);
+                this.blue_list.splice(index, 1);
+              }
+            }
+          } else if (color == "green") {
+            listToRemove = this.getListToRemove(this.green_list);
+            if (listToRemove.length > 0) {
+              for (let i = 0; i < listToRemove[0].length; i++) {
+                // 제거한 엘리먼트는 리스트에서도 제거
+                let index = this.green_list.indexOf(listToRemove[0][i]);
+                this.green_list.splice(index, 1);
+              }
+            }
+          } else if (color == "yellow") {
+            listToRemove = this.getListToRemove(this.yellow_list);
+            if (listToRemove.length > 0) {
+              for (let i = 0; i < listToRemove[0].length; i++) {
+                // 제거한 엘리먼트는 리스트에서도 제거
+                let index = this.yellow_list.indexOf(listToRemove[0][i]);
+                this.yellow_list.splice(index, 1);
+              }
+            }
+          } else if (color == "magenta") {
+            listToRemove = this.getListToRemove(this.magenta_list);
+            if (listToRemove.length > 0) {
+              for (let i = 0; i < listToRemove[0].length; i++) {
+                // 제거한 엘리먼트는 리스트에서도 제거
+                let index = this.magenta_list.indexOf(listToRemove[0][i]);
+                this.magenta_list.splice(index, 1);
+              }
+            }
+          }
+          return listToRemove;
+        };
+
+        this.getListToRemove = function(list) {
+          let removeList = [];
+          for (let i = 0; i < list.length; i++) {
+            if (
+              list.indexOf(list[i] + 1) != -1 &&
+              list.indexOf(list[i] - 1) != -1 &&
+              list[i] % 10 != 0 &&
+              list[i] % 10 != 9
+            ) {
+              // 가로 3개
+              scoreTmp++; //점수 구현
+              removeList.push([list[i], list[i] - 1, list[i] + 1]);
+              break;
+            } else if (
+              list.indexOf(list[i] + 10) != -1 &&
+              list.indexOf(list[i] - 10) != -1 &&
+              Math.floor(list[i] / 10) != 0 &&
+              Math.floor(list[i] / 10) != 9
+            ) {
+              // 세로 3개
+              scoreTmp++; //점수 구현
+              removeList.push([list[i], list[i] - 10, list[i] + 10]);
+              break;
+            } else if (
+              list.indexOf(list[i] + 11) != -1 &&
+              list.indexOf(list[i] - 11) != -1 &&
+              list[i] % 10 != 0 &&
+              list[i] % 10 != 9 &&
+              Math.floor(list[i] / 10) != 0 &&
+              Math.floor(list[i] / 10) != 9
+            ) {
+              // 대각선 3개 - 1
+              scoreTmp++; //점수 구현
+              removeList.push([list[i], list[i] - 11, list[i] + 11]);
+              break;
+            } else if (
+              list.indexOf(list[i] + 9) != -1 &&
+              list.indexOf(list[i] - 9) != -1 &&
+              list[i] % 10 != 0 &&
+              list[i] % 10 != 9 &&
+              Math.floor(list[i] / 10) != 0 &&
+              Math.floor(list[i] / 10) != 9
+            ) {
+              // 대각선 3개 - 2
+              scoreTmp++; //점수 구현
+              removeList.push([list[i], list[i] - 9, list[i] + 9]);
+              break;
+            }
+          }
+          return removeList;
+        };
+
+        this.clear = function() {
+          this.blue_list = [];
+          this.green_list = [];
+          this.yellow_list = [];
+          this.magenta_list = [];
+        };
+      }
+
+      function removeBlocks(listOfBlocks) {
+        let anythingRemoved = false;
+        // 타일에 있는 블록들을 제거
+        for (let i = 0; i < listOfBlocks.length; i++) {
+          for (let j = 0; j < listOfBlocks[i].length; j++) {
+            let tmpLoc = listOfBlocks[i][j];
+            // 제거된 블록들 색깔 검은색으로 변환
+            tds[tmpLoc].style.backgroundColor = "black";
+            blockArray[Math.floor(tmpLoc / 10)][tmpLoc % 10] = null;
+            anythingRemoved = true;
+          }
+        }
+        return anythingRemoved;
+      }
+
+
+      function reArrange() {
+        let isReArranged = false;
+        // 빈칸이 있으면 아래로 내린다.
+        for (let i = 0; i < 10; i++) {
+          // 각 세로 한줄 씩 검사
+          for (let j = 9; j > 0; j--) {
+            if (blockArray[j][i] == null && blockArray[j - 1][i] != null) {
+              isReArranged = true;
+              blockArray[j][i] = blockArray[j - 1][i];
+              blockArray[j][i].x = blockArray[j][i].x + 1;
+              tds[j * 10 + i].style.backgroundColor =
+              tds[j * 10 + i - 10].style.backgroundColor;
+              blockArray[j - 1][i] = null;
+              tds[j * 10 + i - 10].style.backgroundColor = "black";
+            }
+          }
+        }
+        if (isReArranged) {
+          repositionBlockCollection();
+          removeBlocks(blockCollection.getAllBlocksToRemove());
+          reArrange();
+        }
+        return isReArranged;
+      }
+
+      function repositionBlockCollection() {
+        blockCollection.clear();
+        for (let i = 0; i < 10; i++) {
+          for (let j = 0; j < 10; j++) {
+            if (blockArray[i][j] != null) {
+              blockCollection.add(blockArray[i][j]);
+            }
+          }
+        }
+      }
+
+      function oneCycle() {
+        while (true) {
+          removeBlocks(blockCollection.getAllBlocksToRemove());
+          let isReArranged = reArrange();//함수를 변수로 넣을수있다.
+          if (!isReArranged) {
+            break;
+          }
+        }
+      }
+     /*--------------------------------------------------------------------------------------------------------*/
+    </script>
+  </head>
+  <body>
+    <section id="contents">
+    <input type="button" id="level" value="LEVEL 1" style="font-size:30px">
+    &nbsp;&nbsp;
+    <span id="time">0</span>
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    <input type="button" id="score" value="SCORE : 0" style="font-size:30px">
+    <hr>
+    <table>
+      <tr><td></td><td></td><td></td><td></td><td></td>
+      <td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td></td><td></td><td></td><td></td><td></td>
+      <td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td></td><td></td><td></tsd><td></td><td></td>
+      <td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td></td><td></td><td></td><td></td><td></td>
+      <td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td></td><td></td><td></td><td></td><td></td>
+      <td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td></td><td></td><td></td><td></td><td></td>
+      <td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td></td><td></td><td></td><td></td><td></td>
+      <td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td></td><td></td><td></td><td></td><td></td>
+      <td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td></td><td></td><td></td><td></td><td></td>
+      <td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td></td><td></td><td></td><td></td><td></td>
+      <td></td><td></td><td></td><td></td><td></td></tr>
+    </table>
+    </section>
+  </body>
+</html>
